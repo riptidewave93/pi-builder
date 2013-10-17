@@ -99,13 +99,7 @@ cd $rootfs
 
 #  start the debootstrap of the system
 echo "BUILD-SCRIPT: Mounted partitions, debootstraping..."
-
-# If raspbian, no-check-certificate
-if [ "$distrib_name" == "raspbian" ]; then
-  debootstrap --foreign --arch armel $deb_release $rootfs $deb_mirror --no-check-certificate
-else
-  debootstrap --foreign --arch armel $deb_release $rootfs $deb_mirror
-fi
+debootstrap --no-check-certificate --foreign --arch armel $deb_release $rootfs $deb_mirror
 cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
 
@@ -234,7 +228,7 @@ kpartx -d $image
 # Properly terminate the loopback devices
 echo "BUILD-SCRIPT: Finished making the image $image"
 dmsetup remove_all
-losetup -d /dev/loop0
+# losetup -d /dev/loop0
 
 # Move image out of builddir, as buildscript will delete it
 echo "BUILD-SCRIPT: Moving image out of builddir, then terminating"
