@@ -213,7 +213,7 @@ fi
 chmod +x etc/profile.d/raspi-config.sh
 
 # Lets cd back
-cd
+cd $buildenv && cd ..
 
 # Unmount some partitions
 echo "BUILD-SCRIPT: Unmounting Partitions"
@@ -228,6 +228,7 @@ losetup -d /dev/loop0
 
 # Move image out of builddir, as buildscript will delete it
 echo "BUILD-SCRIPT: Moving image out of builddir, then terminating"
-mv ${image} ../rpi_${distrib_name}_${deb_release}_${mydate}.img
+mv ${image} ./rpi_${distrib_name}_${deb_release}_${mydate}.img
+rm ./.pibuilding
 echo "BUILD-SCRIPT: Finished!"
 exit 0
