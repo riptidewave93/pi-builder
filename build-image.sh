@@ -27,48 +27,48 @@ bootfs="${rootfs}/boot"
 # make sure no builds are in process (which should never be an issue)
 if [ -e ./.pibuilding ]
 then
-	echo "BUILD-SCRIPT: Build already in process, aborting"
+	echo "PI-BUILDER: Build already in process, aborting"
 	exit 1
 fi
 
 # Check what we are building, and set the required variables
 if [ "$1" == "" ]; then
-  echo "BUILD-SCRIPT: No Distribution Selected, exiting"
+  echo "PI-BUILDER: No Distribution Selected, exiting"
   exit 1
 else
   if [ "$1" == "debian" ]; then
-    echo "BUILD-SCRIPT: Building Debian Image"
+    echo "PI-BUILDER: Building Debian Image"
     distrib_name="debian"
 	deb_mirror="http://http.debian.net/debian"
     deb_release="wheezy"
   elif [ "$1" == "raspbian" ]; then
-    echo "BUILD-SCRIPT: Building Raspbian Image"
+    echo "PI-BUILDER: Building Raspbian Image"
 	distrib_name="raspbian"
 	deb_mirror="http://archive.raspbian.org/raspbian"
 	deb_release="wheezy"
   else
-    echo "BUILD-SCRIPT: Invalid Distribution Selected, exiting"
+    echo "PI-BUILDER: Invalid Distribution Selected, exiting"
 	exit 1
   fi
 fi
 
 # Check to make sure this is ran by root
 if [ $EUID -ne 0 ]; then
-  echo "BUILD-SCRIPT: this tool must be run as root"
+  echo "PI-BUILDER: this tool must be run as root"
   exit 1
 fi
 
 # Create the buildenv folder, and image file
 touch ./.pibuilding
-echo "BUILD-SCRIPT: Creating Flashable Image"
+echo "PI-BUILDER: Creating Image file"
 mkdir -p $buildenv
 image="${buildenv}/rpi_${distrib_name}_${deb_release}_${mydate}.img"
 dd if=/dev/zero of=$image bs=1MB count=1000
 device=`losetup -f --show $image`
-echo "BUILD-SCRIPT: image $image created and mounted as $device"
+echo "PI-BUILDER: Image $image created and mounted as $device"
 
 # Format the image file partitions
-echo "BUILD-SCRIPT: Setting up MBR/Partitions"
+echo "PI-BUILDER: Setting up MBR/Partitions"
 fdisk $device << EOF
 n
 p
@@ -90,7 +90,7 @@ device=`kpartx -va $image | sed -E 's/.*(loop[0-9])p.*/\1/g' | head -1`
 device="/dev/mapper/${device}"
 bootp=${device}p1
 rootp=${device}p2
-echo "BUILD-SCRIPT: Formatting Partitions"
+echo "PI-BUILDER: Formatting Partitions"
 mkfs.vfat $bootp
 mkfs.ext4 $rootp
 mkdir -p $rootfs
@@ -98,7 +98,7 @@ mount $rootp $rootfs
 cd $rootfs
 
 #  start the debootstrap of the system
-echo "BUILD-SCRIPT: Mounted partitions, debootstraping..."
+echo "PI-BUILDER: Mounted partitions, debootstraping..."
 debootstrap --no-check-certificate --foreign --arch armel $deb_release $rootfs $deb_mirror
 cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
@@ -107,7 +107,7 @@ LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
 mount $bootp $bootfs
 
 # Start adding content to the system files
-echo "BUILD-SCRIPT: Setting up custom files/settings relating to rpi"
+echo "PI-BUILDER: Setting up custom files/settings relating to rpi"
 
 # apt mirrors
 echo "deb $deb_mirror $deb_release main contrib non-free
@@ -168,7 +168,7 @@ rm -f third-stage
 chmod +x third-stage
 LANG=C chroot $rootfs /third-stage
 
-echo "BUILD-SCRIPT: Cleaning up build space/image"
+echo "PI-BUILDER: Cleaning up build space/image"
 
 # Cleanup Script
 echo "#!/bin/bash
@@ -184,7 +184,7 @@ LANG=C chroot $rootfs /cleanup
 
 # startup script to generate new ssh host keys
 rm -f etc/ssh/ssh_host_*
-echo "BUILD-SCRIPT: Deleted SSH Host Keys. Will re-generate at first boot by user"
+echo "PI-BUILDER: Deleted SSH Host Keys. Will re-generate at first boot by user"
 cat << EOF > etc/init.d/ssh_gen_host_keys
 #!/bin/sh
 ### BEGIN INIT INFO
@@ -211,7 +211,7 @@ echo "if [ $(id -u) -ne 0 ]; then
   printf \"\nNOTICE: the software on this Raspberry Pi has not been fully configured. Please run 'raspi-config'\n\n\"
 else
   raspi-config
-  exit 1
+  logout
 fi
 " > etc/profile.d/raspi-config.sh
 chmod +x etc/profile.d/raspi-config.sh
@@ -220,20 +220,20 @@ chmod +x etc/profile.d/raspi-config.sh
 cd $buildenv && cd ..
 
 # Unmount some partitions
-echo "BUILD-SCRIPT: Unmounting Partitions"
+echo "PI-BUILDER: Unmounting Partitions"
 umount $bootp
 umount $rootp
 kpartx -d $image
 
 # Properly terminate the loopback devices
-echo "BUILD-SCRIPT: Finished making the image $image"
+echo "PI-BUILDER: Finished making the image $image"
 dmsetup remove_all
 # losetup -d /dev/loop0
 
 # Move image out of builddir, as buildscript will delete it
-echo "BUILD-SCRIPT: Moving image out of builddir, then terminating"
+echo "PI-BUILDER: Moving image out of builddir, then terminating"
 mv ${image} ./rpi_${distrib_name}_${deb_release}_${mydate}.img
 rm ./.pibuilding
 rm -r $buildenv
-echo "BUILD-SCRIPT: Finished!"
+echo "PI-BUILDER: Finished!"
 exit 0
