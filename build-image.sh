@@ -25,7 +25,7 @@ bootfs="${rootfs}/boot"
 ##############################
 
 # make sure no builds are in process (which should never be an issue)
-if [ -e ./.building ]
+if [ -e ./.pibuilding ]
 then
 	echo "BUILD-SCRIPT: Build already in process, aborting"
 	exit 1
@@ -59,7 +59,7 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # Create the buildenv folder, and image file
-touch ./.building
+touch ./.pibuilding
 echo "BUILD-SCRIPT: Creating Flashable Image"
 mkdir -p $buildenv
 image="${buildenv}/rpi_${distrib_name}_${deb_release}_${mydate}.img"
@@ -86,7 +86,6 @@ w
 EOF
 
 # Mount the loopback device so we can modify the image, and format the partitions
-losetup -d $device
 device=`kpartx -va $image | sed -E 's/.*(loop[0-9])p.*/\1/g' | head -1`
 device="/dev/mapper/${device}"
 bootp=${device}p1
