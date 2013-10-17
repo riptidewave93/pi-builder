@@ -85,7 +85,7 @@ p
 w
 EOF
 
-# Mount the loopback device so we can modify the image, and format the partitions
+# Mount the loopback device so we can modify the image, format the partitions, and mount/cd into rootfs
 device=`kpartx -va $image | sed -E 's/.*(loop[0-9])p.*/\1/g' | head -1`
 device="/dev/mapper/${device}"
 bootp=${device}p1
@@ -94,9 +94,7 @@ echo "BUILD-SCRIPT: Formatting Partitions"
 mkfs.vfat $bootp
 mkfs.ext4 $rootp
 mkdir -p $rootfs
-mkdir -p $bootfs
 mount $rootp $rootfs
-mount $bootp $bootfs
 cd $rootfs
 
 #  start the debootstrap of the system
@@ -104,6 +102,9 @@ echo "BUILD-SCRIPT: Mounted partitions, debootstraping..."
 debootstrap --foreign --arch armel $deb_release $rootfs $deb_mirror
 cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
+
+# Mount the boot partition
+mount $bootp $bootfs
 
 # Start adding content to the system files
 echo "BUILD-SCRIPT: Setting up custom files/settings relating to rpi"
