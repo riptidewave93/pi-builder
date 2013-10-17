@@ -142,6 +142,10 @@ echo "console-common	console-data/keymap/policy	select	Select keymap from full l
 console-common	console-data/keymap/full	select	de-latin1-nodeadkeys
 " > debconf.set
 
+# If Raspbian, add repo key
+if [ "$distrib_name" == "raspbian" ]; then
+  LANG=C chroot $rootfs wget $deb_mirror.public.key -O - | apt-key add -
+fi
 # Third Stage Setup Script (most of the setup process)
 echo "#!/bin/bash
 debconf-set-selections /debconf.set
