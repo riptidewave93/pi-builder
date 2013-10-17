@@ -22,8 +22,8 @@ BuildDateFormat="+%Y%m%d-%H%M"
 # Build Function, used to, well, call the build script.
 function image_build {
   distrib=$1
-  BuildDate=$(date ${BuildDateFormat})
-  ${ScriptDir}/build-image.sh $distrib > ./buildlog-$BuildDate.txt 2>&1
+  BuildDate=$(date $BuildDateFormat)
+  ${ScriptDir}/build-image.sh $distrib > ${ScriptDir}/buildlog-$BuildDate.txt 2>&1
 }
 
 # Cleanup Function, used to move the image to its proper location
