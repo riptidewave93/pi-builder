@@ -99,7 +99,13 @@ cd $rootfs
 
 #  start the debootstrap of the system
 echo "BUILD-SCRIPT: Mounted partitions, debootstraping..."
-debootstrap --foreign --arch armel $deb_release $rootfs $deb_mirror
+
+# If raspbian, no-check-certificate
+if [ "$distrib_name" == "raspbian" ]; then
+  debootstrap --foreign --arch armel $deb_release $rootfs $deb_mirror --no-check-certificate
+else
+  debootstrap --foreign --arch armel $deb_release $rootfs $deb_mirror
+fi
 cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
 
