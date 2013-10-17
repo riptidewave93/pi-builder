@@ -13,7 +13,7 @@ mydate=`date +%Y%m%d-%H%M`
 bootsize="64M"
 
 # Location of the build environment, where the image will be mounted during build
-buildenv="/opt/pi-builder/BuildEnv"
+buildenv="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/BuildEnv"
 
 # folders in the buildenv to be mounted, one for rootfs, one for /boot
 # Recommend that you don't change these!
