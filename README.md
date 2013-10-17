@@ -12,12 +12,12 @@ binfmt-support qemu qemu-user-static debootstrap kpartx lvm2 dosfstools
 
 <b>How To Use:</b>
 
-chmod +x build-image.sh
+pi-builder.sh - call from cronjob to build both builds/move to final location
+build-image.sh *distro* - Used to create a image file
 
-chmod +x pi-builder.sh
-
-sudo ./pi-builder.sh
-
+distro options:
+debian
+raspbian
 
 This is a heavily modified version of <a href="https://github.com/hoedlmoser">hoedlmosers</a> work that can be found at https://kmp.or.at/~klaus/raspberry/build_rpi_sd_card.sh
 
