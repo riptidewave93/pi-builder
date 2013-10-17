@@ -4,7 +4,7 @@
 #
 # created by Klaus M Pfeiffer, http://blog.kmp.or.at/ , 2012-06-24
 #
-# modified by Chris Blake, https://github.com/riptidewave93 , 2013-10-16
+# modified by Chris Blake, https://github.com/riptidewave93 , 2013-10-17
 
 # Date format, used in the image file name
 mydate=`date +%Y%m%d-%H%M`
@@ -37,19 +37,20 @@ if [ "$1" == "" ]; then
   exit 1
 else
   if [ "$1" == "debian" ]; then
-    echo "PI-BUILDER: Building Debian Image"
     distrib_name="debian"
-	deb_mirror="http://http.debian.net/debian"
+    deb_mirror="http://http.debian.net/debian"
     deb_release="wheezy"
+    deb_arch="armel"
   elif [ "$1" == "raspbian" ]; then
-    echo "PI-BUILDER: Building Raspbian Image"
-	distrib_name="raspbian"
-	deb_mirror="http://archive.raspbian.org/raspbian"
-	deb_release="wheezy"
+    distrib_name="raspbian"
+    deb_mirror="http://archive.raspbian.org/raspbian"
+    deb_release="wheezy"
+    deb_arch="armhf"
   else
     echo "PI-BUILDER: Invalid Distribution Selected, exiting"
-	exit 1
+    exit 1
   fi
+echo "PI-BUILDER: Building $distrib_name Image"
 fi
 
 # Check to make sure this is ran by root
@@ -99,7 +100,7 @@ cd $rootfs
 
 #  start the debootstrap of the system
 echo "PI-BUILDER: Mounted partitions, debootstraping..."
-debootstrap --no-check-gpg --foreign --arch armel $deb_release $rootfs $deb_mirror
+debootstrap --no-check-gpg --foreign --arch $deb_arch $deb_release $rootfs $deb_mirror
 cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
 
