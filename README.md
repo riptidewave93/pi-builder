@@ -20,3 +20,7 @@ sudo ./pi-builder.sh
 
 
 This is a heavily modified version of <a href="https://github.com/hoedlmoser">hoedlmosers</a> work that can be found at https://kmp.or.at/~klaus/raspberry/build_rpi_sd_card.sh
+
+<b>TO-DO:</b>
+
+LOTS of Error Checking
