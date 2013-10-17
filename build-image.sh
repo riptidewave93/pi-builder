@@ -94,6 +94,7 @@ echo "BUILD-SCRIPT: Formatting Partitions"
 mkfs.vfat $bootp
 mkfs.ext4 $rootp
 mkdir -p $rootfs
+mkdir -p $bootfs
 mount $rootp $rootfs
 mount $bootp $bootfs
 cd $rootfs
