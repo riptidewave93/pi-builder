@@ -41,7 +41,7 @@ else
     distrib_name="debian"
 	deb_mirror="http://http.debian.net/debian"
     deb_release="wheezy"
-  else if [ "$1" == "raspbian" ]; then
+  elif [ "$1" == "raspbian" ]; then
     echo "BUILD-SCRIPT: Building Raspbian Image"
 	distrib_name="raspbian"
 	deb_mirror="http://archive.raspbian.org/raspbian"
