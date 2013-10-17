@@ -23,7 +23,7 @@ BuildDateFormat="+%Y%m%d-%H%M"
 function image_build {
   distrib=$1
   BuildDate=$(date ${BuildDateFormat})
-  ./build-image.sh $distrib > ./buildlog-$BuildDate.txt 2>&1
+  ${ScriptDir}/build-image.sh $distrib > ./buildlog-$BuildDate.txt 2>&1
 }
 
 # Cleanup Function, used to move the image to its proper location
@@ -32,8 +32,8 @@ function image_finished {
   if [ ! -d "${img_dir}/${distrib}/logs" ]; then
     mkdir -p ${img_dir}/${distrib}/logs
   fi
-  mv ./buildlog-$BuildDate.txt ${img_dir}/${distrib}/logs/ && chmod 644 ${img_dir}/${distrib}/logs/buildlog-$BuildDate.txt
-  mv ./rpi_*.img ${img_dir}/${distrib}/ && chmod 644 ${img_dir}/${distrib}/rpi_*.img
+  mv ${ScriptDir}/buildlog-$BuildDate.txt ${img_dir}/${distrib}/logs/ && chmod 644 ${img_dir}/${distrib}/logs/buildlog-$BuildDate.txt
+  mv ${ScriptDir}/rpi_*.img ${img_dir}/${distrib}/ && chmod 644 ${img_dir}/${distrib}/rpi_*.img
 }
 
 # Make sure we are root
@@ -50,7 +50,7 @@ then
 fi
 
 #Start build
-touch ./.building
+touch ${ScriptDir}/.building
 touch ${img_dir}/CURRENTLY_BUILDING
 
 # we have two distros, so lets build one at a time, and when done call the cleanup function.
@@ -60,6 +60,6 @@ image_build raspbian
 image_finished raspbian
 
 # Finished, clean up
-rm ./.building
+rm ${ScriptDir}/.building
 rm ${img_dir}/CURRENTLY_BUILDING
 exit 0
