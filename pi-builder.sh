@@ -19,16 +19,11 @@ BuildDateFormat="+%Y%m%d-%H%M"
 # Start actual code, no need to edit below this #
 #################################################
 
-# Build Function, used to, well, call the build script.
-function image_build {
+# Build Function, used to, well, call the build script and cleanup.
+function build_image {
   distrib=$1
   BuildDate=$(date $BuildDateFormat)
   ${ScriptDir}/build-image.sh $distrib > ${ScriptDir}/buildlog-$BuildDate.txt 2>&1
-}
-
-# Cleanup Function, used to move the image to its proper location
-function image_finished {
-  distrib=$1
   if [ ! -d "${img_dir}/${distrib}/logs" ]; then
     mkdir -p ${img_dir}/${distrib}/logs
   fi
@@ -54,10 +49,8 @@ touch ${ScriptDir}/.building
 touch ${img_dir}/CURRENTLY_BUILDING
 
 # we have two distros, so lets build one at a time, and when done call the cleanup function.
-image_build debian
-image_finished debian
-image_build raspbian
-image_finished raspbian
+build_image debian
+build_image raspbian
 
 # Finished, clean up
 rm ${ScriptDir}/.building
