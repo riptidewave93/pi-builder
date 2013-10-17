@@ -99,7 +99,7 @@ cd $rootfs
 
 #  start the debootstrap of the system
 echo "PI-BUILDER: Mounted partitions, debootstraping..."
-debootstrap --no-check-certificate --foreign --arch armel $deb_release $rootfs $deb_mirror
+debootstrap --no-check-gpg --foreign --arch armel $deb_release $rootfs $deb_mirror
 cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
 
