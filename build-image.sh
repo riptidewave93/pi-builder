@@ -230,5 +230,6 @@ losetup -d /dev/loop0
 echo "BUILD-SCRIPT: Moving image out of builddir, then terminating"
 mv ${image} ./rpi_${distrib_name}_${deb_release}_${mydate}.img
 rm ./.pibuilding
+rm -r $buildenv
 echo "BUILD-SCRIPT: Finished!"
 exit 0
