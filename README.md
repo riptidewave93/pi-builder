@@ -1,4 +1,9 @@
 pi-builder
 ==========
 
-The source code to my raspberry pi system image builder. Currently it supports Debian and Raspbian, and creates minimal system images.
+The source code to my Raspberry Pi system image builder called pi-builder. Currently it supports Debian and Raspbian, and it creates minimal system images.
+
+
+This code is used on http://pi-builder.servernetworktech.com/ and is ran monthly to create system images.
+
+This is a heavily modified version of <a href="https://github.com/hoedlmoser">hoedlmosers</a> work that can be found at https://kmp.or.at/~klaus/raspberry/build_rpi_sd_card.sh
