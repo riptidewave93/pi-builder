@@ -25,7 +25,7 @@ bootfs="${rootfs}/boot"
 ##############################
 
 # make sure no builds are in process (which should never be an issue)
-if [ -e ./.pibuilding ]
+if [ -e ./.pibuild-$1 ]
 then
 	echo "PI-BUILDER: Build already in process, aborting"
 	exit 1
@@ -60,7 +60,7 @@ if [ $EUID -ne 0 ]; then
 fi
 
 # Create the buildenv folder, and image file
-touch ./.pibuilding
+touch ./.pibuild-$1
 echo "PI-BUILDER: Creating Image file"
 mkdir -p $buildenv
 image="${buildenv}/rpi_${distrib_name}_${deb_release}_${mydate}.img"
@@ -234,7 +234,7 @@ dmsetup remove_all
 # Move image out of builddir, as buildscript will delete it
 echo "PI-BUILDER: Moving image out of builddir, then terminating"
 mv ${image} ./rpi_${distrib_name}_${deb_release}_${mydate}.img
-rm ./.pibuilding
+rm ./.pibuild-$1
 rm -r $buildenv
 echo "PI-BUILDER: Finished!"
 exit 0
