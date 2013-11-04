@@ -50,6 +50,7 @@ touch ${img_dir}/CURRENTLY_BUILDING
 
 # we have two distros, so lets build one at a time, and when done call the cleanup function.
 build_image debian
+sleep 5
 build_image raspbian
 
 # Finished, clean up
