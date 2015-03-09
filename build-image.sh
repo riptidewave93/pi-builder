@@ -39,12 +39,12 @@ else
   if [ "$1" == "debian" ]; then
     distrib_name="debian"
     deb_mirror="http://http.debian.net/debian"
-    deb_release="wheezy"
+    deb_release="jessie"
     deb_arch="armel"
   elif [ "$1" == "raspbian" ]; then
     distrib_name="raspbian"
     deb_mirror="http://archive.raspbian.org/raspbian"
-    deb_release="wheezy"
+    deb_release="jessie"
     deb_arch="armhf"
   else
     echo "PI-BUILDER: Invalid Distribution Selected, exiting"
@@ -120,17 +120,20 @@ echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=
 # Mounts
 echo "proc            /proc           proc    defaults        0       0
 /dev/mmcblk0p1  /boot           vfat    defaults        0       0
+/dev/mmcblk0p2	/				ext4	defaults		0		1
 " > etc/fstab
 
 # Hostname
 echo "${distrib_name}" > etc/hostname
+echo "127.0.1.1	${distrib_name}" >> etc/host
 
 # Networking
 echo "auto lo
 iface lo inet loopback
 
-auto eth0
+allow-hotplug eth0
 iface eth0 inet dhcp
+iface eth0 inet6 dhcp
 " > etc/network/interfaces
 
 # Modules
@@ -152,7 +155,7 @@ echo "#!/bin/bash
 debconf-set-selections /debconf.set
 rm -f /debconf.set
 apt-get update 
-apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted
+apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl fake-hwclock
 wget https://raw.github.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
 wget https://github.com/asb/raspi-config/raw/master/raspi-config -O /usr/bin/raspi-config --no-check-certificate
 chmod +x /usr/bin/rpi-update
@@ -162,8 +165,13 @@ touch /boot/start.elf
 rpi-update
 apt-get -y install locales console-common openssh-server less vim
 echo \"root:raspberry\" | chpasswd
+#useradd -m -s /bin/bash pi
+#echo \"pi:pi\" | chpasswd
 sed -i -e 's/KERNEL\!=\"eth\*|/KERNEL\!=\"/' /lib/udev/rules.d/75-persistent-net-generator.rules
 rm -f /etc/udev/rules.d/70-persistent-net.rules
+sed -i 's/^PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+echo 'HWCLOCKACCESS=no' >> /etc/default/hwclock
+echo 'RAMTMP=yes' >> /etc/default/tmpfs 
 rm -f third-stage
 " > third-stage
 chmod +x third-stage
@@ -174,10 +182,11 @@ echo "PI-BUILDER: Cleaning up build space/image"
 # Cleanup Script
 echo "#!/bin/bash
 update-rc.d ssh remove
-aptitude update
-aptitude clean
+apt-get autoclean
 apt-get clean
-rm -r /root/.rpi-firmware
+apt-get purge
+apt-get update
+rm -r /root/.rpi-firmware > /dev/null 2>&1
 rm -f cleanup
 " > cleanup
 chmod +x cleanup
@@ -208,11 +217,11 @@ chmod a+x etc/init.d/ssh_gen_host_keys
 insserv etc/init.d/ssh_gen_host_keys
 
 # Run Raspi-Config at first login so users can expand storage and such
-echo "if [ $(id -u) -ne 0 ]; then
-  printf \"\nNOTICE: the software on this Raspberry Pi has not been fully configured. Please run 'raspi-config'\n\n\"
+echo "#!/bin/bash
+if [ `id -u` -ne 0 ]; then
+  printf \"\nNOTICE: the software on this Raspberry Pi has not been fully configured. Please run 'raspi-config' as root.\n\n\"
 else
-  raspi-config
-  logout
+  raspi-config && exit
 fi
 " > etc/profile.d/raspi-config.sh
 chmod +x etc/profile.d/raspi-config.sh
