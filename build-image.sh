@@ -93,7 +93,7 @@ bootp=${device}p1
 rootp=${device}p2
 echo "PI-BUILDER: Formatting Partitions"
 mkfs.vfat $bootp
-mkfs.ext4 $rootp
+mkfs.ext4 $rootp -L root
 mkdir -p $rootfs
 mount $rootp $rootfs
 cd $rootfs
