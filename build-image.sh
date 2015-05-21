@@ -156,8 +156,8 @@ debconf-set-selections /debconf.set
 rm -f /debconf.set
 apt-get update 
 apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl fake-hwclock
-wget https://raw.github.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
-wget https://github.com/asb/raspi-config/raw/master/raspi-config -O /usr/bin/raspi-config --no-check-certificate
+wget https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
+wget https://raw.githubusercontent.com/riptidewave93/raspi-config/master/raspi-config -O /usr/bin/raspi-config --no-check-certificate
 chmod +x /usr/bin/rpi-update
 chmod +x /usr/bin/raspi-config
 mkdir -p /lib/modules/3.1.9+
