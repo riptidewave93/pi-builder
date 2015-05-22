@@ -88,6 +88,7 @@ EOF
 
 # Mount the loopback device so we can modify the image, format the partitions, and mount/cd into rootfs
 device=`kpartx -va $image | sed -E 's/.*(loop[0-9])p.*/\1/g' | head -1`
+sleep 1 # Without this, we sometimes miss the mapper device!
 device="/dev/mapper/${device}"
 bootp=${device}p1
 rootp=${device}p2
@@ -105,7 +106,7 @@ cp /usr/bin/qemu-arm-static usr/bin/
 LANG=C chroot $rootfs /debootstrap/debootstrap --second-stage
 
 # Mount the boot partition
-mount $bootp $bootfs
+mount -t vfat $bootp $bootfs
 
 # Start adding content to the system files
 echo "PI-BUILDER: Setting up custom files/settings relating to rpi"
@@ -165,8 +166,6 @@ touch /boot/start.elf
 rpi-update
 apt-get -y install locales console-common openssh-server less vim
 echo \"root:raspberry\" | chpasswd
-#useradd -m -s /bin/bash pi
-#echo \"pi:pi\" | chpasswd
 sed -i -e 's/KERNEL\!=\"eth\*|/KERNEL\!=\"/' /lib/udev/rules.d/75-persistent-net-generator.rules
 rm -f /etc/udev/rules.d/70-persistent-net.rules
 sed -i 's/^PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
@@ -186,6 +185,8 @@ apt-get autoclean
 apt-get clean
 apt-get purge
 apt-get update
+service ntp stop
+#ps ax | grep ntpd | awk '{print $1}' | xargs kill
 rm -r /root/.rpi-firmware > /dev/null 2>&1
 rm -f cleanup
 " > cleanup
@@ -238,7 +239,7 @@ kpartx -d $image
 # Properly terminate the loopback devices
 echo "PI-BUILDER: Finished making the image $image"
 dmsetup remove_all
-# losetup -d /dev/loop0
+losetup -D
 
 # Move image out of builddir, as buildscript will delete it
 echo "PI-BUILDER: Moving image out of builddir, then terminating"
