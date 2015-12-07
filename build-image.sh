@@ -41,6 +41,11 @@ else
     deb_mirror="http://http.debian.net/debian"
     deb_release="jessie"
     deb_arch="armel"
+  elif [ "$1" == "debian-hf" ]; then
+    distrib_name="debian"
+    deb_mirror="http://http.debian.net/debian"
+    deb_release="jessie"
+    deb_arch="armhf"
   elif [ "$1" == "raspbian" ]; then
     distrib_name="raspbian"
     deb_mirror="http://archive.raspbian.org/raspbian"
@@ -63,7 +68,7 @@ fi
 touch ./.pibuild-$1
 echo "PI-BUILDER: Creating Image file"
 mkdir -p $buildenv
-image="${buildenv}/rpi_${distrib_name}_${deb_release}_${mydate}.img"
+image="${buildenv}/rpi_${distrib_name}_${deb_release}_${deb_arch}_${mydate}.img"
 dd if=/dev/zero of=$image bs=1MB count=1000
 device=`losetup -f --show $image`
 echo "PI-BUILDER: Image $image created and mounted as $device"
@@ -116,7 +121,7 @@ echo "deb $deb_mirror $deb_release main contrib non-free
 deb-src $deb_mirror $deb_release main contrib non-free" > etc/apt/sources.list
 
 # Boot commands
-echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > boot/cmdline.txt
+echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait" > boot/cmdline.txt
 
 # Mounts
 echo "proc            /proc           proc    defaults        0       0
@@ -153,9 +158,12 @@ if [ "$distrib_name" == "raspbian" ]; then
 fi
 # Third Stage Setup Script (most of the setup process)
 echo "#!/bin/bash
+export LANGUAGE=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 debconf-set-selections /debconf.set
 rm -f /debconf.set
-apt-get update 
+apt-get update
 apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl fake-hwclock
 wget https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
 wget https://raw.githubusercontent.com/riptidewave93/raspi-config/master/raspi-config -O /usr/bin/raspi-config --no-check-certificate
@@ -170,7 +178,9 @@ sed -i -e 's/KERNEL\!=\"eth\*|/KERNEL\!=\"/' /lib/udev/rules.d/75-persistent-net
 rm -f /etc/udev/rules.d/70-persistent-net.rules
 sed -i 's/^PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 echo 'HWCLOCKACCESS=no' >> /etc/default/hwclock
-echo 'RAMTMP=yes' >> /etc/default/tmpfs 
+echo 'RAMTMP=yes' >> /etc/default/tmpfs
+echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+locale-gen
 rm -f third-stage
 " > third-stage
 chmod +x third-stage
@@ -243,7 +253,7 @@ losetup -D
 
 # Move image out of builddir, as buildscript will delete it
 echo "PI-BUILDER: Moving image out of builddir, then terminating"
-mv ${image} ./rpi_${distrib_name}_${deb_release}_${mydate}.img
+mv ${image} ./rpi_${distrib_name}_${deb_release}_${deb_arch}_${mydate}.img
 rm ./.pibuild-$1
 rm -r $buildenv
 echo "PI-BUILDER: Finished!"

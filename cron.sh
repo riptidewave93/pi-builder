@@ -10,10 +10,13 @@ ScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Location where you want the log/image file moved too after the build completes
 # this script will make a folder in this dir named after the distrib, and put the image file in there
 # logs will be inside a folder called logs, inside of the distrib folder that was created.
-img_dir="/var/www/builds"
+img_dir="/var/www/html/builds"
 
 # Build date format that is added to the buildlog file, used by the date command syntax
 BuildDateFormat="+%Y%m%d-%H%M"
+
+# Array of Images
+Distros=( "debian" "debian-hf" "raspbian" )
 
 #################################################
 # Start actual code, no need to edit below this #
@@ -48,10 +51,13 @@ fi
 touch ${ScriptDir}/.building
 touch ${img_dir}/CURRENTLY_BUILDING
 
-# we have two distros, so lets build one at a time, and when done call the cleanup function.
-build_image debian
-sleep 5
-build_image raspbian
+# Build each Distribution
+for i in "${Distros[@]}"
+do
+   :
+   build_image $i
+   sleep 5
+done
 
 # Finished, clean up
 rm ${ScriptDir}/.building
