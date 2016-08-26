@@ -31,7 +31,6 @@ function build_image {
     mkdir -p ${img_dir}/${distrib}/logs
   fi
   mv ${ScriptDir}/buildlog-$BuildDate.txt ${img_dir}/${distrib}/logs/ && chmod 644 ${img_dir}/${distrib}/logs/buildlog-$BuildDate.txt
-  gzip ${ScriptDir}/rpi_*.img
   mv ${ScriptDir}/rpi_*.img.gz ${img_dir}/${distrib}/ && chmod 644 ${img_dir}/${distrib}/rpi_*.img.gz
 }
 

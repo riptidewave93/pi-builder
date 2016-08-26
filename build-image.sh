@@ -225,7 +225,7 @@ update-rc.d ssh defaults
 rm -f \$0
 EOF
 chmod a+x etc/init.d/ssh_gen_host_keys
-insserv etc/init.d/ssh_gen_host_keys
+LANG=C chroot $rootfs insserv etc/init.d/ssh_gen_host_keys
 
 # Run Raspi-Config at first login so users can expand storage and such
 echo "#!/bin/bash
@@ -252,8 +252,9 @@ dmsetup remove_all
 losetup -D
 
 # Move image out of builddir, as buildscript will delete it
-echo "PI-BUILDER: Moving image out of builddir, then terminating"
+echo "PI-BUILDER: Moving image out of builddir, compressing, then terminating"
 mv ${image} ./rpi_${distrib_name}_${deb_release}_${deb_arch}_${mydate}.img
+gzip ./rpi_${distrib_name}_${deb_release}_${deb_arch}_${mydate}.img
 rm ./.pibuild-$1
 rm -r $buildenv
 echo "PI-BUILDER: Finished!"
