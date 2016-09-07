@@ -121,7 +121,10 @@ echo "deb $deb_mirror $deb_release main contrib non-free
 deb-src $deb_mirror $deb_release main contrib non-free" > etc/apt/sources.list
 
 # Boot commands
-echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait" > boot/cmdline.txt
+echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet init=/usr/lib/raspi-config/init_resize.sh" > boot/cmdline.txt
+
+# Enable sound, as we load the module
+echo "dtparam=audio=on" > boot/config.txt
 
 # Mounts
 echo "proc            /proc           proc    defaults        0       0
@@ -158,29 +161,24 @@ if [ "$distrib_name" == "raspbian" ]; then
 fi
 # Third Stage Setup Script (most of the setup process)
 echo "#!/bin/bash
-export LANGUAGE=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
 debconf-set-selections /debconf.set
 rm -f /debconf.set
 apt-get update
-apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl fake-hwclock
+apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl fake-hwclock locales console-common openssh-server less vim
+export LANGUAGE=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+locale-gen
 wget https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
-wget https://raw.githubusercontent.com/riptidewave93/raspi-config/master/raspi-config -O /usr/bin/raspi-config --no-check-certificate
 chmod +x /usr/bin/rpi-update
-chmod +x /usr/bin/raspi-config
-mkdir -p /lib/modules/3.1.9+
-touch /boot/start.elf
 rpi-update
-apt-get -y install locales console-common openssh-server less vim
 echo \"root:raspberry\" | chpasswd
 sed -i -e 's/KERNEL\!=\"eth\*|/KERNEL\!=\"/' /lib/udev/rules.d/75-persistent-net-generator.rules
 rm -f /etc/udev/rules.d/70-persistent-net.rules
 sed -i 's/^PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 echo 'HWCLOCKACCESS=no' >> /etc/default/hwclock
 echo 'RAMTMP=yes' >> /etc/default/tmpfs
-echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
-locale-gen
 rm -f third-stage
 " > third-stage
 chmod +x third-stage
@@ -192,16 +190,20 @@ echo "PI-BUILDER: Cleaning up build space/image"
 echo "#!/bin/bash
 update-rc.d ssh remove
 apt-get autoclean
-apt-get clean
-apt-get purge
-apt-get update
+apt-get --purge -y autoremove
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 service ntp stop
-#ps ax | grep ntpd | awk '{print $1}' | xargs kill
+rm -rf /boot.bak
 rm -r /root/.rpi-firmware > /dev/null 2>&1
 rm -f cleanup
 " > cleanup
 chmod +x cleanup
 LANG=C chroot $rootfs /cleanup
+
+# First run script to resize rootfs
+mkdir -p usr/lib/raspi-config
+wget https://raw.githubusercontent.com/dyne/arm-sdk/master/arm/extra/rpi-conf/init_resize.sh -O usr/lib/raspi-config/init_resize.sh
+chmod +x usr/lib/raspi-config/init_resize.sh
 
 # startup script to generate new ssh host keys
 rm -f etc/ssh/ssh_host_*
@@ -226,16 +228,6 @@ rm -f \$0
 EOF
 chmod a+x etc/init.d/ssh_gen_host_keys
 LANG=C chroot $rootfs insserv etc/init.d/ssh_gen_host_keys
-
-# Run Raspi-Config at first login so users can expand storage and such
-echo "#!/bin/bash
-if [ `id -u` -ne 0 ]; then
-  printf \"\nNOTICE: the software on this Raspberry Pi has not been fully configured. Please run 'raspi-config' as root.\n\n\"
-else
-  raspi-config && exit
-fi
-" > etc/profile.d/raspi-config.sh
-chmod +x etc/profile.d/raspi-config.sh
 
 # Lets cd back
 cd $buildenv && cd ..
