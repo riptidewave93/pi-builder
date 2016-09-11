@@ -20,6 +20,10 @@ buildenv="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/BuildEnv"
 rootfs="${buildenv}/rootfs"
 bootfs="${rootfs}/boot"
 
+# Set this to 'True' if you want to enable wireless support within the image. this
+# is done as an option, as some people may not want these patches in a base image
+wireless_support="True"
+
 ##############################
 # No need to edit under this #
 ##############################
@@ -164,7 +168,8 @@ echo "#!/bin/bash
 debconf-set-selections /debconf.set
 rm -f /debconf.set
 apt-get update
-apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl fake-hwclock locales console-common openssh-server less vim
+apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl \
+fake-hwclock locales console-common openssh-server less vim
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -183,6 +188,19 @@ rm -f third-stage
 " > third-stage
 chmod +x third-stage
 LANG=C chroot $rootfs /third-stage
+
+if [ "$wireless_support" == "True" ]; then
+	echo "PI-BUILDER: Adding Wireless Support"
+	echo "#!/bin/bash
+apt-get install -y wireless-tools wpasupplicant
+wget http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_0.43_all.deb -O /root/firmware-realtek_0.43_all.deb
+dpkg -i /root/firmware-realtek_0.43_all.deb
+rm /root/firmware-realtek_0.43_all.deb
+rm -f wifi-support
+" > wifi-support
+	chmod +x wifi-support
+	LANG=C chroot $rootfs /wifi-support
+fi
 
 echo "PI-BUILDER: Cleaning up build space/image"
 
