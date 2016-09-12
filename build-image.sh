@@ -9,7 +9,8 @@
 # Date format, used in the image file name
 mydate=`date +%Y%m%d-%H%M`
 
-# Size of the Boot Partition
+# Size of the image and boot partitions
+imgsize="1000MB"
 bootsize="64M"
 
 # Location of the build environment, where the image will be mounted during build
@@ -24,16 +25,13 @@ bootfs="${rootfs}/boot"
 # is done as an option, as some people may not want these patches in a base image
 wireless_support="True"
 
+# Set this to 'True' if you want to enable the first-run bootstrap service, which
+# looks for, and runs, /boot/bootstrap.sh on first boot if the file exists.
+bootstrap_support="True"
+
 ##############################
 # No need to edit under this #
 ##############################
-
-# make sure no builds are in process (which should never be an issue)
-if [ -e ./.pibuild-$1 ]
-then
-	echo "PI-BUILDER: Build already in process, aborting"
-	exit 1
-fi
 
 # Check what we are building, and set the required variables
 if [ "$1" == "" ]; then
@@ -68,12 +66,19 @@ if [ $EUID -ne 0 ]; then
   exit 1
 fi
 
+# make sure no builds are in process (which should never be an issue)
+if [ -e ./.pibuild-$1 ]; then
+	echo "PI-BUILDER: Build already in process, aborting"
+	exit 1
+else
+	touch ./.pibuild-$1
+fi
+
 # Create the buildenv folder, and image file
-touch ./.pibuild-$1
 echo "PI-BUILDER: Creating Image file"
 mkdir -p $buildenv
 image="${buildenv}/rpi_${distrib_name}_${deb_release}_${deb_arch}_${mydate}.img"
-dd if=/dev/zero of=$image bs=1MB count=1000
+dd if=/dev/zero of=$image bs=$imgsize count=1
 device=`losetup -f --show $image`
 echo "PI-BUILDER: Image $image created and mounted as $device"
 
@@ -226,26 +231,74 @@ chmod +x usr/lib/raspi-config/init_resize.sh
 # startup script to generate new ssh host keys
 rm -f etc/ssh/ssh_host_*
 echo "PI-BUILDER: Deleted SSH Host Keys. Will re-generate at first boot by user"
-cat << EOF > etc/init.d/ssh_gen_host_keys
+cat << EOF > etc/init.d/first_boot
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          Generates new ssh host keys on first boot
+# Provides:          Generates new ssh host keys on first boot & resizes rootfs
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:
-# Short-Description: Generates new ssh host keys on first boot
-# Description:       Generates new ssh host keys on first boot
+# Short-Description: Generates new ssh host keys on first boot & resizes rootfs
+# Description:       Generates new ssh host keys on first boot & resizes rootfs
 ### END INIT INFO
+
+# Expand rootfs
+resize2fs /dev/mmcblk0p2
+
+# Generate SSH keys & enable SSH
 ssh-keygen -f /etc/ssh/ssh_host_rsa_key -t rsa -N ""
 ssh-keygen -f /etc/ssh/ssh_host_dsa_key -t dsa -N ""
-insserv -r /etc/init.d/ssh_gen_host_keys
 service ssh start
 update-rc.d ssh defaults
-rm -f \$0
+
 EOF
-chmod a+x etc/init.d/ssh_gen_host_keys
-LANG=C chroot $rootfs insserv etc/init.d/ssh_gen_host_keys
+
+# Make sure to enable the bootstrap service for after the reboot
+if [ "$bootstrap_support" == "True" ]; then
+	cat << EOF >> etc/init.d/first_boot
+# Enable bootstrap service
+insserv /etc/init.d/pi-bootstrap
+
+EOF
+fi
+
+# Finish up adding to the first_boot script
+cat << EOF >> etc/init.d/first_boot
+# Cleanup
+insserv -r /etc/init.d/first_boot
+rm -f \$0
+sync && reboot
+sleep 60
+EOF
+chmod a+x etc/init.d/first_boot
+LANG=C chroot $rootfs insserv etc/init.d/first_boot
+
+if [ "$bootstrap_support" == "True" ]; then
+	echo "PI-BUILDER: Adding Bootstrap Script Support"
+	cat << EOF > etc/init.d/pi-bootstrap
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          Runs a provision script on first boot
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:
+# Short-Description: Runs a provision script on first boot
+# Description:       Runs a provision script on first boot
+### END INIT INFO
+if [ -e "/boot/bootstrap.sh" ]; then
+	cp /boot/bootstrap.sh /tmp/bootstrap.sh
+	chmod +x /tmp/bootstrap.sh
+	/tmp/bootstrap.sh
+	rm -f /tmp/bootstrap.sh
+fi
+insserv -r /etc/init.d/pi-bootstrap
+rm -f \$0
+
+EOF
+	chmod a+x etc/init.d/pi-bootstrap
+fi
 
 # Lets cd back
 cd $buildenv && cd ..
