@@ -25,10 +25,6 @@ bootfs="${rootfs}/boot"
 # is done as an option, as some people may not want these patches in a base image
 wireless_support="True"
 
-# Set this to 'True' if you want to enable the first-run bootstrap service, which
-# looks for, and runs, /boot/bootstrap.sh on first boot if the file exists.
-bootstrap_support="True"
-
 ##############################
 # No need to edit under this #
 ##############################
@@ -252,24 +248,10 @@ ssh-keygen -f /etc/ssh/ssh_host_dsa_key -t dsa -N ""
 service ssh start
 update-rc.d ssh defaults
 
-EOF
-
-# Make sure to enable the bootstrap service for after the reboot
-if [ "$bootstrap_support" == "True" ]; then
-	cat << EOF >> etc/init.d/first_boot
-# Enable bootstrap service
-insserv /etc/init.d/pi-bootstrap
-
-EOF
-fi
-
-# Finish up adding to the first_boot script
-cat << EOF >> etc/init.d/first_boot
 # Cleanup
 insserv -r /etc/init.d/first_boot
 rm -f \$0
-sync && reboot
-sleep 60
+sync && sleep 1 && reboot -f
 EOF
 chmod a+x etc/init.d/first_boot
 LANG=C chroot $rootfs insserv etc/init.d/first_boot
