@@ -239,48 +239,21 @@ cat << EOF > etc/init.d/first_boot
 # Description:       Generates new ssh host keys on first boot & resizes rootfs
 ### END INIT INFO
 
-# Expand rootfs
-resize2fs /dev/mmcblk0p2
-
 # Generate SSH keys & enable SSH
 ssh-keygen -f /etc/ssh/ssh_host_rsa_key -t rsa -N ""
 ssh-keygen -f /etc/ssh/ssh_host_dsa_key -t dsa -N ""
 service ssh start
 update-rc.d ssh defaults
 
+# Expand rootfs
+resize2fs -f /dev/mmcblk0p2
+
 # Cleanup
 insserv -r /etc/init.d/first_boot
 rm -f \$0
-sync && sleep 1 && reboot -f
 EOF
 chmod a+x etc/init.d/first_boot
 LANG=C chroot $rootfs insserv etc/init.d/first_boot
-
-if [ "$bootstrap_support" == "True" ]; then
-	echo "PI-BUILDER: Adding Bootstrap Script Support"
-	cat << EOF > etc/init.d/pi-bootstrap
-#!/bin/sh
-### BEGIN INIT INFO
-# Provides:          Runs a provision script on first boot
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
-# Default-Start:     2 3 4 5
-# Default-Stop:
-# Short-Description: Runs a provision script on first boot
-# Description:       Runs a provision script on first boot
-### END INIT INFO
-if [ -e "/boot/bootstrap.sh" ]; then
-	cp /boot/bootstrap.sh /tmp/bootstrap.sh
-	chmod +x /tmp/bootstrap.sh
-	/tmp/bootstrap.sh
-	rm -f /tmp/bootstrap.sh
-fi
-insserv -r /etc/init.d/pi-bootstrap
-rm -f \$0
-
-EOF
-	chmod a+x etc/init.d/pi-bootstrap
-fi
 
 # Lets cd back
 cd $buildenv && cd ..
