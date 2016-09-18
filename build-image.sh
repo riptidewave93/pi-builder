@@ -21,8 +21,7 @@ buildenv="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/BuildEnv"
 rootfs="${buildenv}/rootfs"
 bootfs="${rootfs}/boot"
 
-# Set this to 'True' if you want to enable wireless support within the image. this
-# is done as an option, as some people may not want these patches in a base image
+# Set this to 'True' if you want to enable wireless support within the image.
 wireless_support="True"
 
 ##############################
@@ -95,6 +94,9 @@ p
 
 w
 EOF
+
+# Some systems need partprobe to run before we can fdisk the device
+partprobe
 
 # Mount the loopback device so we can modify the image, format the partitions, and mount/cd into rootfs
 device=`kpartx -va $image | sed -E 's/.*(loop[0-9])p.*/\1/g' | head -1`
@@ -230,7 +232,7 @@ echo "PI-BUILDER: Deleted SSH Host Keys. Will re-generate at first boot by user"
 cat << EOF > etc/init.d/first_boot
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          Generates new ssh host keys on first boot & resizes rootfs
+# Provides:          first_boot
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
