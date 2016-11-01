@@ -223,7 +223,7 @@ LANG=C chroot $rootfs /cleanup
 
 # First run script to resize rootfs
 mkdir -p usr/lib/raspi-config
-wget https://raw.githubusercontent.com/dyne/arm-sdk/master/arm/extra/rpi-conf/init_resize.sh -O usr/lib/raspi-config/init_resize.sh
+wget https://raw.githubusercontent.com/dyne/arm-sdk/0.4/arm/extra/rpi-conf/init_resize.sh -O usr/lib/raspi-config/init_resize.sh
 chmod +x usr/lib/raspi-config/init_resize.sh
 
 # startup script to generate new ssh host keys
