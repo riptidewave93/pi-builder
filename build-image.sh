@@ -159,7 +159,7 @@ snd_bcm2835
 
 # Console settings
 echo "console-common	console-data/keymap/policy	select	Select keymap from full list
-console-common	console-data/keymap/full	select	de-latin1-nodeadkeys
+console-common	console-data/keymap/full	select	us
 " > debconf.set
 
 # If Raspbian, add repo key
