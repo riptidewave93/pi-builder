@@ -10,7 +10,7 @@
 mydate=`date +%Y%m%d-%H%M`
 
 # Size of the image and boot partitions
-imgsize="1000MB"
+imgsize="2000MB"
 bootsize="64M"
 
 # Location of the build environment, where the image will be mounted during build
