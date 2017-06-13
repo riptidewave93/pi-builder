@@ -128,7 +128,7 @@ echo "deb $deb_mirror $deb_release main contrib non-free
 deb-src $deb_mirror $deb_release main contrib non-free" > etc/apt/sources.list
 
 # Boot commands
-echo "net.ifnames=0 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait init=/usr/lib/raspi-config/init_resize.sh" > boot/cmdline.txt
+echo "net.ifnames=0 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet init=/usr/lib/raspi-config/init_resize.sh" > boot/cmdline.txt
 
 # Enable sound, as we load the module
 echo "dtparam=audio=on" > boot/config.txt
@@ -172,7 +172,7 @@ debconf-set-selections /debconf.set
 rm -f /debconf.set
 apt-get update
 apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl \
-fake-hwclock locales console-common openssh-server less vim
+fake-hwclock locales console-common openssh-server less vim net-tools
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
