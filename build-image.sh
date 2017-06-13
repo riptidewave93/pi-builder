@@ -10,7 +10,7 @@
 mydate=`date +%Y%m%d-%H%M`
 
 # Size of the image and boot partitions
-imgsize="2000MB"
+imgsize="2G"
 bootsize="64M"
 
 # Location of the build environment, where the image will be mounted during build
@@ -35,18 +35,18 @@ if [ "$1" == "" ]; then
 else
   if [ "$1" == "debian" ]; then
     distrib_name="debian"
-    deb_mirror="http://http.debian.net/debian"
-    deb_release="jessie"
+    deb_mirror="http://ftp.us.debian.org/debian"
+    deb_release="stretch"
     deb_arch="armel"
   elif [ "$1" == "debian-hf" ]; then
     distrib_name="debian"
-    deb_mirror="http://http.debian.net/debian"
-    deb_release="jessie"
+    deb_mirror="http://ftp.us.debian.org/debian"
+    deb_release="stretch"
     deb_arch="armhf"
   elif [ "$1" == "raspbian" ]; then
     distrib_name="raspbian"
     deb_mirror="http://archive.raspbian.org/raspbian"
-    deb_release="jessie"
+    deb_release="stretch"
     deb_arch="armhf"
   else
     echo "PI-BUILDER: Invalid Distribution Selected, exiting"
@@ -73,7 +73,7 @@ fi
 echo "PI-BUILDER: Creating Image file"
 mkdir -p $buildenv
 image="${buildenv}/rpi_${distrib_name}_${deb_release}_${deb_arch}_${mydate}.img"
-dd if=/dev/zero of=$image bs=$imgsize count=1
+fallocate -l $imgsize "$image"
 device=`losetup -f --show $image`
 echo "PI-BUILDER: Image $image created and mounted as $device"
 
@@ -128,7 +128,7 @@ echo "deb $deb_mirror $deb_release main contrib non-free
 deb-src $deb_mirror $deb_release main contrib non-free" > etc/apt/sources.list
 
 # Boot commands
-echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet init=/usr/lib/raspi-config/init_resize.sh" > boot/cmdline.txt
+echo "net.ifnames=0 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait init=/usr/lib/raspi-config/init_resize.sh" > boot/cmdline.txt
 
 # Enable sound, as we load the module
 echo "dtparam=audio=on" > boot/config.txt
@@ -251,11 +251,12 @@ update-rc.d ssh defaults
 resize2fs -f /dev/mmcblk0p2
 
 # Cleanup
-insserv -r /etc/init.d/first_boot
+update-rc.d first_boot remove
 rm -f \$0
 EOF
 chmod a+x etc/init.d/first_boot
-LANG=C chroot $rootfs insserv etc/init.d/first_boot
+LANG=C chroot $rootfs update-rc.d first_boot defaults
+LANG=C chroot $rootfs update-rc.d first_boot enable
 
 # Lets cd back
 cd $buildenv && cd ..
