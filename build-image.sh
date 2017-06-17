@@ -154,6 +154,8 @@ iface eth0 inet6 dhcp
 
 # Modules
 echo "vchiq
+
+# Sound
 snd_bcm2835
 " >> etc/modules
 
@@ -195,10 +197,19 @@ LANG=C chroot $rootfs /third-stage
 if [ "$wireless_support" == "True" ]; then
 	echo "PI-BUILDER: Adding Wireless Support"
 	echo "#!/bin/bash
-apt-get install -y wireless-tools wpasupplicant
+apt-get install -y wireless-tools wpasupplicant firmware-brcm80211
 wget http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_0.43_all.deb -O /root/firmware-realtek_0.43_all.deb
 dpkg -i /root/firmware-realtek_0.43_all.deb
 rm /root/firmware-realtek_0.43_all.deb
+wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm80211/brcm/brcmfmac43430-sdio.bin -O /lib/firmware/brcm/brcmfmac43430-sdio.bin --no-check-certificate
+wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm80211/brcm/brcmfmac43430-sdio.txt -O /lib/firmware/brcm/brcmfmac43430-sdio.txt --no-check-certificate
+
+# Modules
+echo "# Wifi
+brcmfmac
+brcmutil
+" >> etc/modules
+
 rm -f wifi-support
 " > wifi-support
 	chmod +x wifi-support
