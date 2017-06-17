@@ -153,7 +153,8 @@ iface eth0 inet6 dhcp
 " > etc/network/interfaces
 
 # Modules
-echo "vchiq
+echo "# VideoCore
+vchiq
 
 # Sound
 snd_bcm2835
@@ -209,9 +210,9 @@ rm -f wifi-support
 	LANG=C chroot $rootfs /wifi-support
 	# Modules
 	echo "# Wifi
-	brcmfmac
-	brcmutil
-	" >> etc/modules
+brcmfmac
+brcmutil
+" >> etc/modules
 fi
 
 echo "PI-BUILDER: Cleaning up build space/image"
