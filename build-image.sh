@@ -199,9 +199,9 @@ if [ "$wireless_support" == "True" ]; then
 	echo "PI-BUILDER: Adding Wireless Support"
 	echo "#!/bin/bash
 apt-get install -y wireless-tools wpasupplicant firmware-brcm80211
-wget http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_20170823-1~bpo9+1_all.deb -O /root/firmware-realtek_0.43_all.deb
-dpkg -i /root/firmware-realtek_0.43_all.deb
-rm /root/firmware-realtek_0.43_all.deb
+wget http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_20170823-1~bpo9+1_all.deb -O /root/firmware-realtek.deb
+dpkg -i /root/firmware-realtek.deb
+rm /root/firmware-realtek.deb
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43430-sdio.bin-O /lib/firmware/brcm/brcmfmac43430-sdio.bin --no-check-certificate
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43430-sdio.txt -O /lib/firmware/brcm/brcmfmac43430-sdio.txt --no-check-certificate
 rm -f wifi-support
