@@ -204,6 +204,9 @@ dpkg -i /root/firmware-realtek.deb
 rm /root/firmware-realtek.deb
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43430-sdio.bin -O /lib/firmware/brcm/brcmfmac43430-sdio.bin --no-check-certificate
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43430-sdio.txt -O /lib/firmware/brcm/brcmfmac43430-sdio.txt --no-check-certificate
+wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43455-sdio.bin -O /lib/firmware/brcm/brcmfmac43455-sdio.bin --no-check-certificate
+wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43455-sdio.txt -O /lib/firmware/brcm/brcmfmac43455-sdio.txt --no-check-certificate
+wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43455-sdio.clm_blob -O /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob --no-check-certificate
 rm -f wifi-support
 " > wifi-support
 	chmod +x wifi-support
