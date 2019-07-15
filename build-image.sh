@@ -36,17 +36,17 @@ else
   if [ "$1" == "debian" ]; then
     distrib_name="debian"
     deb_mirror="http://ftp.us.debian.org/debian"
-    deb_release="stretch"
+    deb_release="buster"
     deb_arch="armel"
   elif [ "$1" == "debian-hf" ]; then
     distrib_name="debian"
     deb_mirror="http://ftp.us.debian.org/debian"
-    deb_release="stretch"
+    deb_release="buster"
     deb_arch="armhf"
   elif [ "$1" == "raspbian" ]; then
     distrib_name="raspbian"
     deb_mirror="http://archive.raspbian.org/raspbian"
-    deb_release="stretch"
+    deb_release="buster"
     deb_arch="armhf"
   else
     echo "PI-BUILDER: Invalid Distribution Selected, exiting"
@@ -165,17 +165,14 @@ echo "console-common	console-data/keymap/policy	select	Select keymap from full l
 console-common	console-data/keymap/full	select	us
 " > debconf.set
 
-# If Raspbian, add repo key
-if [ "$distrib_name" == "raspbian" ]; then
-  LANG=C chroot $rootfs wget $deb_mirror.public.key -O - | apt-key add -
-fi
 # Third Stage Setup Script (most of the setup process)
 echo "#!/bin/bash
 debconf-set-selections /debconf.set
 rm -f /debconf.set
 apt-get update
-apt-get -y install git-core binutils ca-certificates e2fsprogs ntp parted curl \
-fake-hwclock locales console-common openssh-server less vim net-tools
+apt-get -y install git binutils ca-certificates e2fsprogs ntp parted curl \
+fake-hwclock locales console-common openssh-server less vim net-tools wget \
+whiptail
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -183,6 +180,9 @@ echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
 locale-gen
 wget https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
 chmod +x /usr/bin/rpi-update
+export UPDATE_SELF=0
+export SKIP_WARNING=1
+export CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 rpi-update
 echo \"root:raspberry\" | chpasswd
 sed -i -e 's/KERNEL\!=\"eth\*|/KERNEL\!=\"/' /lib/udev/rules.d/75-persistent-net-generator.rules
@@ -195,13 +195,15 @@ rm -f third-stage
 chmod +x third-stage
 LANG=C chroot $rootfs /third-stage
 
+# If Raspbian, add repo key
+if [ "$distrib_name" == "raspbian" ]; then
+  LANG=C chroot $rootfs wget $deb_mirror.public.key -O - | apt-key add -
+fi
+
 if [ "$wireless_support" == "True" ]; then
 	echo "PI-BUILDER: Adding Wireless Support"
 	echo "#!/bin/bash
 apt-get install -y wireless-tools wpasupplicant firmware-brcm80211
-wget http://http.us.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_20170823-1~bpo9+1_all.deb -O /root/firmware-realtek.deb
-dpkg -i /root/firmware-realtek.deb
-rm /root/firmware-realtek.deb
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43430-sdio.bin -O /lib/firmware/brcm/brcmfmac43430-sdio.bin --no-check-certificate
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43430-sdio.txt -O /lib/firmware/brcm/brcmfmac43430-sdio.txt --no-check-certificate
 wget https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/master/brcm/brcmfmac43455-sdio.bin -O /lib/firmware/brcm/brcmfmac43455-sdio.bin --no-check-certificate
