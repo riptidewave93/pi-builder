@@ -11,7 +11,7 @@ mydate=`date +%Y%m%d-%H%M`
 
 # Size of the image and boot partitions
 imgsize="2G"
-bootsize="64M"
+bootsize="256M"
 
 # Location of the build environment, where the image will be mounted during build
 buildenv="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/BuildEnv"
@@ -183,9 +183,10 @@ chmod +x /usr/bin/rpi-update
 export UPDATE_SELF=0
 export SKIP_WARNING=1
 export CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+export WANT_PI4=1
+export SKIP_CHECK_PARTITION=1
 rpi-update
 echo \"root:raspberry\" | chpasswd
-sed -i -e 's/KERNEL\!=\"eth\*|/KERNEL\!=\"/' /lib/udev/rules.d/75-persistent-net-generator.rules
 rm -f /etc/udev/rules.d/70-persistent-net.rules
 sed -i 's|#PermitRootLogin prohibit-password|PermitRootLogin yes|g' /etc/ssh/sshd_config
 echo 'HWCLOCKACCESS=no' >> /etc/default/hwclock
