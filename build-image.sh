@@ -35,12 +35,12 @@ if [ "$1" == "" ]; then
 else
   if [ "$1" == "debian" ]; then
     distrib_name="debian"
-    deb_mirror="http://ftp.us.debian.org/debian"
+    deb_mirror="https://mirrors.edge.kernel.org/debian"
     deb_release="buster"
     deb_arch="armel"
   elif [ "$1" == "debian-hf" ]; then
     distrib_name="debian"
-    deb_mirror="http://ftp.us.debian.org/debian"
+    deb_mirror="https://mirrors.edge.kernel.org/debian"
     deb_release="buster"
     deb_arch="armhf"
   elif [ "$1" == "raspbian" ]; then
@@ -178,7 +178,8 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
 locale-gen
-wget https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update --no-check-certificate
+update-ca-certificates --fresh
+wget https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update -O /usr/bin/rpi-update
 chmod +x /usr/bin/rpi-update
 export UPDATE_SELF=0
 export SKIP_WARNING=1
@@ -265,6 +266,9 @@ update-rc.d ssh defaults
 
 # Expand rootfs
 resize2fs -f /dev/mmcblk0p2
+
+# Fixup SSL pains
+update-ca-certificates --fresh
 
 # Cleanup
 update-rc.d first_boot remove
